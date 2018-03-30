@@ -45,6 +45,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.Transaction;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -157,9 +158,60 @@ public class RestaurantDetailActivity extends AppCompatActivity
         }
     }
 
+    private void addRating2(final DocumentReference restaurantRef, final Rating rating) {
+
+       mRestaurantRef.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(DocumentSnapshot documentSnapshot) {
+                Restaurant restaurant = documentSnapshot.toObject(Restaurant.class);
+                Log.e("fsdf",restaurant.getName());
+                // Compute new number of ratings
+                int newNumRatings = restaurant.getNumRatings() + 1;
+
+                // Compute new average rating
+                double oldRatingTotal = restaurant.getAvgRating() *
+                        restaurant.getNumRatings();
+                double newAvgRating = (oldRatingTotal + rating.getRating()) /
+                        newNumRatings;
+
+                // Set new restaurant info
+                restaurant.setNumRatings(newNumRatings);
+                restaurant.setAvgRating(newAvgRating);
+
+                mRestaurantRef.set(restaurant);
+            }
+        });
+    }
     private Task<Void> addRating(final DocumentReference restaurantRef, final Rating rating) {
-        // TODO(developer): Implement
-        return Tasks.forException(new Exception("not yet implemented"));
+        // Create reference for new rating, for use inside the transaction
+        final DocumentReference ratingRef = restaurantRef.collection("ratings")
+                .document();
+
+        // In a transaction, add the new rating and update the aggregate totals
+        return mFirestore.runTransaction(new Transaction.Function<Void>() {
+            @Override
+            public Void apply(Transaction transaction) throws FirebaseFirestoreException {
+
+                Restaurant restaurant = transaction.get(restaurantRef).toObject(Restaurant.class);
+
+                // Compute new number of ratings
+                int newNumRatings = restaurant.getNumRatings() + 1;
+
+                // Compute new average rating
+                double oldRatingTotal = restaurant.getAvgRating() * restaurant.getNumRatings();
+                double newAvgRating = (oldRatingTotal + rating.getRating()) / newNumRatings;
+
+                // Set new restaurant info
+                restaurant.setNumRatings(newNumRatings);
+                restaurant.setAvgRating(newAvgRating);
+
+                // Commit to Firestore
+                transaction.set(restaurantRef, restaurant);
+                transaction.set(ratingRef, rating);
+
+                return null;
+            }
+        });
     }
 
     /**
@@ -202,28 +254,7 @@ public class RestaurantDetailActivity extends AppCompatActivity
     @Override
     public void onRating(Rating rating) {
         // In a transaction, add the new rating and update the aggregate totals
-        addRating(mRestaurantRef, rating)
-                .addOnSuccessListener(this, new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        Log.d(TAG, "Rating added");
-
-                        // Hide keyboard and scroll to top
-                        hideKeyboard();
-                        mRatingsRecycler.smoothScrollToPosition(0);
-                    }
-                })
-                .addOnFailureListener(this, new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.w(TAG, "Add rating failed", e);
-
-                        // Show failure message and hide keyboard
-                        hideKeyboard();
-                        Snackbar.make(findViewById(android.R.id.content), "Failed to add rating",
-                                Snackbar.LENGTH_SHORT).show();
-                    }
-                });
+        addRating2(mRestaurantRef, rating);
     }
 
     private void hideKeyboard() {
