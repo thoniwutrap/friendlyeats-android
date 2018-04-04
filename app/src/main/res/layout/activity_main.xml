@@ -16,14 +16,17 @@
         app:logo="@drawable/ic_restaurant_white_24px"
         app:popupTheme="@style/Theme.AppCompat.Light.DarkActionBar"
         app:title="@string/app_name"
-        app:titleMarginStart="24dp"
+        app:titleMarginStart="25dp"
         app:titleTextColor="@android:color/white" />
 
+
+
+
     <FrameLayout
-        android:id="@+id/filter_bar_container"
+        android:id="@+id/filter_bar_container2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/toolbar"
+        android:layout_below="@+id/filter_bar_container"
         android:background="?attr/colorPrimary"
         android:paddingBottom="12dp"
         android:paddingLeft="12dp"
@@ -97,12 +100,13 @@
 
     </FrameLayout>
 
+
     <!-- Main Restaurants recycler -->
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recycler_restaurants"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/filter_bar_container"
+        android:layout_below="@+id/filter_bar_container2"
         android:background="@android:color/white"
         tools:listitem="@layout/item_restaurant" />
 
@@ -110,7 +114,7 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="4dp"
-        android:layout_below="@+id/filter_bar_container"
+        android:layout_below="@+id/filter_bar_container2"
         android:background="@drawable/bg_shadow" />
 
     <!-- Empty list (pizza guy) view -->
