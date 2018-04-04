@@ -238,7 +238,8 @@ public class MainActivity extends AppCompatActivity implements
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_add_items:
-                onAddItemsClicked();
+                Intent i = new Intent(MainActivity.this,Main2Activity.class);
+                startActivity(i);
                 break;
             case R.id.menu_sign_out:
                 AuthUI.getInstance().signOut(this);
